@@ -1,10 +1,24 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from course.juan.fastapi.webapi.config.db import Base, engine
+from course.juan.fastapi.webapi.entities.message import Message
 from course.juan.fastapi.webapi.routers import messages
 
-app = FastAPI()
+
+def create_tables() -> None:
+    Base.metadata.create_all(bind=engine, tables=[Message.__table__])
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_tables()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(messages.router, prefix="/messages", tags=["messages"])
 

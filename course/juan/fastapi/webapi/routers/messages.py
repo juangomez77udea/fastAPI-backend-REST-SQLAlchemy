@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, HTTPException, Body
+from fastapi import APIRouter, Depends, Query, HTTPException
 from starlette import status
 
 from course.juan.fastapi.webapi.dependencies.message_dependencies import get_message_service
@@ -10,11 +10,12 @@ router = APIRouter()
 
 @router.get("/", response_model=List[Message])
 def list_messages(service: MessageService = Depends(get_message_service)):
-    #print(f'Id del servicio: {id(service)}')
     return service.find_all()
 
-@router.get("/{message_id}", response_model=Optional[Message])
-def get_message(message_id: int, service: MessageService = Depends(get_message_service)):
+@router.get('/details/', response_model=Optional[Message])
+def get_message_url_param(
+        message_id: int = Query(..., ge=1),
+        service: MessageService = Depends(get_message_service)):
     message = service.find_by_id(message_id)
     if message is None:
         raise HTTPException(
@@ -23,10 +24,8 @@ def get_message(message_id: int, service: MessageService = Depends(get_message_s
         )
     return message
 
-@router.get('/details/', response_model=Optional[Message])
-def get_message_url_param(
-        message_id: int = Query(..., ge=1),
-        service: MessageService = Depends(get_message_service)):
+@router.get("/{message_id}", response_model=Optional[Message])
+def get_message(message_id: int, service: MessageService = Depends(get_message_service)):
     message = service.find_by_id(message_id)
     if message is None:
         raise HTTPException(
